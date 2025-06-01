@@ -1,34 +1,32 @@
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function NavBar({ onOpen, onSearch, setIsAuthenticated }) {
-  const navigate = useNavigate();
-
-  const handleSearchChange = (event) => {
-    const searchValue = event.target.value;
-    onSearch(searchValue);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
+const NavBar = ({ onOpen, onSearch, onLogout }) => {
   return (
-    <div className="navbar bg-base-100 shadow-md rounded-full p-2 pt-10 flex items-center justify-between">
-      <div className="navbar flex-grow flex items-center justify-center">
-        <Link to="/" className="text-xl pl-10">Product Management</Link>
-        <div className="form-control mx-2">
+    <div className="navbar bg-base-100 shadow">
+      <div className="flex-1">
+        <Link to="/home" className="btn btn-ghost normal-case text-xl">Product Manager</Link>
+      </div>
+      <div className="flex-none gap-2">
+        <Link to="/home" className="btn btn-ghost">Home</Link>
+        <Link to="/about" className="btn btn-ghost">About</Link>
+        <div className="form-control">
           <input
             type="text"
-            placeholder="Search"
-            onChange={handleSearchChange}
-            className="input input-bordered w-24 md:w-auto"
+            placeholder="Search products..."
+            onChange={(e) => onSearch(e.target.value)}
+            className="input input-bordered"
           />
         </div>
-        <button onClick={onOpen} className="btn btn-primary">Add Product</button>
-        <button onClick={handleLogout} className="btn btn-ghost ml-2">Logout</button>
+        <button onClick={onOpen} className="btn btn-primary">
+          Add Product
+        </button>
+        <button onClick={onLogout} className="btn btn-outline btn-error">
+          Logout
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default NavBar;

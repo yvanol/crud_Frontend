@@ -6,6 +6,8 @@ import NavBar from './components/NavBar';
 import TableList from './components/TableList';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import Home from './components/Home';
+import About from './components/About';
 import axios from 'axios';
 
 function App() {
@@ -36,14 +38,14 @@ function App() {
       } else {
         setIsAuthenticated(false);
       }
-      setIsOpen(false); // Ensure modal is closed after auth check
+      setIsOpen(false);
       setIsLoading(false);
     };
     verifyAuth();
   }, []);
 
   useEffect(() => {
-    console.log('isOpen changed:', isOpen); // Debug modal state
+    console.log('isOpen changed:', isOpen);
   }, [isOpen]);
 
   const fetchProducts = async () => {
@@ -65,7 +67,7 @@ function App() {
   };
 
   const handleOpen = (mode, product = null) => {
-    console.log('handleOpen called:', { mode, product }); // Debug
+    console.log('handleOpen called:', { mode, product });
     setModalMode(mode);
     setProductData(product);
     setIsOpen(true);
@@ -111,7 +113,7 @@ function App() {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setTableData([]);
-    setIsOpen(false); // Close modal on logout
+    setIsOpen(false);
   };
 
   if (isLoading) {
@@ -122,10 +124,12 @@ function App() {
     <Router>
       <div className="min-h-screen bg-base-200">
         <Routes>
+          <Route path="/home" element={<Home />} />
+          <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup />} />
           <Route
-            path="/"
+            path="/app"
             element={
               isAuthenticated ? (
                 <>
@@ -160,6 +164,7 @@ function App() {
               )
             }
           />
+          <Route path="/" element={<Navigate to="/home" replace />} />
         </Routes>
       </div>
     </Router>
