@@ -44,30 +44,21 @@ function App() {
     verifyAuth();
   }, []);
 
-  useEffect(() => {
-    console.log('isOpen changed:', isOpen);
-  }, [isOpen]);
-
   const fetchProducts = async () => {
     try {
-      console.log('Fetching products with token:', localStorage.getItem('token'));
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setTableData(response.data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching products:', {
-        message: err.message,
-        response: err.response ? err.response.data : null,
-        status: err.response ? err.response.status : null,
-      });
+      console.error('Error fetching products:', err);
       setError(err.response?.data?.message || 'Failed to fetch products');
     }
   };
 
   const handleOpen = (mode, product = null) => {
-    console.log('handleOpen called:', { mode, product });
     setModalMode(mode);
     setProductData(product);
     setIsOpen(true);
@@ -80,19 +71,16 @@ function App() {
       return;
     }
     try {
+      const token = localStorage.getItem('token');
       if (modalMode === 'add') {
-        console.log('Sending product data:', newProductData);
         const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, newProductData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Product added:', response.data);
         setTableData((prevData) => [...prevData, response.data]);
       } else {
-        console.log('Updating product with ID:', productData.id);
         const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${productData.id}`, newProductData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Product updated:', response.data);
         setTableData((prevData) =>
           prevData.map((product) => (product.id === productData.id ? response.data : product))
         );
@@ -101,10 +89,7 @@ function App() {
       setIsOpen(false);
       setProductData(null);
     } catch (err) {
-      console.error('Error in handleSubmit:', {
-        message: err.message,
-        response: err.response ? err.response.data : null,
-      });
+      console.error('Error in handleSubmit:', err);
       setError(err.response?.data?.message || 'Failed to save product');
     }
   };
@@ -125,7 +110,20 @@ function App() {
       <div className="min-h-screen bg-base-200">
         <Routes>
           <Route path="/home" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route
+            path="/about"
+            element={
+              <>
+                <NavBar
+                  onOpen={() => handleOpen('add')}
+                  onSearch={setSearchTerm}
+                  onLogout={handleLogout}
+                  setIsAuthenticated={setIsAuthenticated}
+                />
+                <About />
+              </>
+            }
+          />
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup />} />
           <Route
@@ -160,7 +158,7 @@ function App() {
                   )}
                 </>
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/login" state={{ from: '/app' }} />
               )
             }
           />
