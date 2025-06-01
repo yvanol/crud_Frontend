@@ -21,14 +21,14 @@ function App() {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
+      fetchProducts();
     }
   }, []);
 
-  // Define handleOpen
   const handleOpen = (mode, product = null) => {
-    setModalMode(mode); // Set mode to 'add' or 'edit'
-    setProductData(product); // Set product data for editing, or null for adding
-    setIsOpen(true); // Open the modal
+    setModalMode(mode);
+    setProductData(product);
+    setIsOpen(true);
   };
 
   const fetchProducts = async () => {
@@ -45,17 +45,9 @@ function App() {
         response: err.response ? err.response.data : null,
         status: err.response ? err.response.status : null,
       });
-      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to fetch products');
+      setError(err.response?.data?.message || 'Failed to fetch products');
     }
   };
-
-  useEffect(() => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    setIsAuthenticated(true);
-    fetchProducts(); // Fetch products on mount if authenticated
-  }
-}, []);
 
   const handleSubmit = async (newProductData) => {
     try {
@@ -79,12 +71,12 @@ function App() {
       setError(null);
       setIsOpen(false);
       setProductData(null);
-    } catch (error) {
+    } catch (err) {
       console.error('Error in handleSubmit:', {
-        message: error.message,
-        response: error.response ? error.response.data : null,
+        message: err.message,
+        response: err.response ? err.response.data : null,
       });
-      setError(error.response?.data?.message || 'Failed to save product');
+      setError(err.response?.data?.message || 'Failed to save product');
     }
   };
 
@@ -100,7 +92,7 @@ function App() {
               isAuthenticated ? (
                 <>
                   <NavBar
-                    onOpen={() => handleOpen('add')} // Pass handleOpen with 'add' mode
+                    onOpen={() => handleOpen('add')}
                     onSearch={setSearchTerm}
                     setIsAuthenticated={setIsAuthenticated}
                   />
@@ -108,15 +100,15 @@ function App() {
                   <TableList
                     setTableData={setTableData}
                     tableData={tableData}
-                    handleOpen={handleOpen} // Pass handleOpen to TableList
+                    handleOpen={handleOpen}
                     searchTerm={searchTerm}
                   />
                   <ModalForm
                     isOpen={isOpen}
-                    OnSubmit={handleSubmit}
+                    onSubmit={handleSubmit} // Fixed prop name to onSubmit
                     onClose={() => {
                       setIsOpen(false);
-                      setProductData(null); // Clear productData on close
+                      setProductData(null);
                     }}
                     mode={modalMode}
                     productData={productData}

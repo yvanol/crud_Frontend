@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios'; // Added missing import
 
 function Login({ setIsAuthenticated }) {
   const [name, setName] = useState('');
@@ -8,24 +9,25 @@ function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    console.log('Sending login request:', { name, password });
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-      name,
-      password,
-    });
-    console.log('Login response:', { status: response.status, data: response.data });
-    if (response.status === 200) {
-      setIsAuthenticated(true);
-      localStorage.setItem('token', response.data.token);
-      navigate('/');
+    e.preventDefault();
+    try {
+      console.log('Sending login request:', { name });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+        name,
+        password,
+      });
+      console.log('Login response:', { status: response.status, data: response.data });
+      if (response.status === 200) {
+        setIsAuthenticated(true);
+        localStorage.setItem('token', response.data.token);
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid name or password');
+      console.error('Login fetch error:', err);
     }
-  } catch (err) {
-    setError(err.response?.data?.message || 'Invalid name or password');
-    console.error('Login fetch error:', err);
-  }
-};
+  };
+
   const handleSignupNavigation = () => {
     navigate('/signup');
   };
@@ -47,6 +49,7 @@ function Login({ setIsAuthenticated }) {
                 onChange={(e) => setName(e.target.value)}
                 className="input input-bordered w-full"
                 placeholder="Enter your name"
+                required
               />
             </div>
             <div className="form-control">
@@ -59,6 +62,7 @@ function Login({ setIsAuthenticated }) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="input input-bordered w-full"
                 placeholder="Enter your password"
+                required
               />
             </div>
             <div className="form-control mt-6">
