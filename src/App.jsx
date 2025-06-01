@@ -9,27 +9,37 @@ import Signup from './components/Signup';
 import axios from 'axios';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [isOpen, setIsOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [searchTerm, setSearchTerm] = useState('');
   const [productData, setProductData] = useState(null);
   const [tableData, setTableData] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-      fetchProducts();
-    }
+    const verifyAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setIsAuthenticated(true);
+          await fetchProducts();
+        } catch (err) {
+          console.error('Token verification failed:', err);
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+      setIsLoading(false);
+    };
+    verifyAuth();
   }, []);
-
-  const handleOpen = (mode, product = null) => {
-    setModalMode(mode);
-    setProductData(product);
-    setIsOpen(true);
-  };
 
   const fetchProducts = async () => {
     try {
@@ -49,7 +59,18 @@ function App() {
     }
   };
 
+  const handleOpen = (mode, product = null) => {
+    setModalMode(mode);
+    setProductData(product);
+    setIsOpen(true);
+  };
+
   const handleSubmit = async (newProductData) => {
+    if (!newProductData) {
+      setIsOpen(false);
+      setProductData(null);
+      return;
+    }
     try {
       if (modalMode === 'add') {
         console.log('Sending product data:', newProductData);
@@ -80,6 +101,16 @@ function App() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setTableData([]);
+  };
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-base-200 flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <Router>
       <div className="min-h-screen bg-base-200">
@@ -94,6 +125,7 @@ function App() {
                   <NavBar
                     onOpen={() => handleOpen('add')}
                     onSearch={setSearchTerm}
+                    onLogout={handleLogout}
                     setIsAuthenticated={setIsAuthenticated}
                   />
                   {error && <p className="text-error text-center mt-4">{error}</p>}
@@ -103,16 +135,18 @@ function App() {
                     handleOpen={handleOpen}
                     searchTerm={searchTerm}
                   />
-                  <ModalForm
-                    isOpen={isOpen}
-                    onSubmit={handleSubmit} // Fixed prop name to onSubmit
-                    onClose={() => {
-                      setIsOpen(false);
-                      setProductData(null);
-                    }}
-                    mode={modalMode}
-                    productData={productData}
-                  />
+                  {isOpen && (
+                    <ModalForm
+                      isOpen={isOpen}
+                      onSubmit={handleSubmit}
+                      onClose={() => {
+                        setIsOpen(false);
+                        setProductData(null);
+                      }}
+                      mode={modalMode}
+                      productData={productData}
+                    />
+                  )}
                 </>
               ) : (
                 <Navigate to="/login" replace />

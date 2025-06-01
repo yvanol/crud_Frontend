@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ModalForm = ({ onSubmit, product }) => {
-  const [formData, setFormData] = useState(
-    product || {
-      name: '',
-      description: '',
-      price: '',
-      isactive: false,
+const ModalForm = ({ isOpen, onSubmit, onClose, mode, productData }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    isactive: false,
+  });
+
+  // Prefill form data when productData changes
+  useEffect(() => {
+    if (productData && mode === 'edit') {
+      setFormData({
+        name: productData.name || '',
+        description: productData.description || '',
+        price: productData.price ? productData.price.toString() : '',
+        isactive: productData.isactive || false,
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        isactive: false,
+      });
     }
-  );
+  }, [productData, mode]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -21,16 +38,21 @@ const ModalForm = ({ onSubmit, product }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (typeof onSubmit === 'function') {
-      onSubmit(formData);
+      onSubmit({
+        ...formData,
+        price: parseFloat(formData.price) || 0,
+      });
     } else {
       console.error('onSubmit is not a function:', onSubmit);
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="modal modal-open">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">{product ? 'Edit Product' : 'Add Product'}</h3>
+        <h3 className="font-bold text-lg">{mode === 'edit' ? 'Edit Product' : 'Add Product'}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
             <label className="label">
@@ -88,13 +110,9 @@ const ModalForm = ({ onSubmit, product }) => {
           </div>
           <div className="modal-action">
             <button type="submit" className="btn btn-primary">
-              {product ? 'Update' : 'Add'} Product
+              {mode === 'edit' ? 'Update' : 'Add'} Product
             </button>
-            <button
-              type="button"
-              onClick={() => onSubmit(null)}
-              className="btn btn-outline"
-            >
+            <button type="button" onClick={onClose} className="btn btn-outline">
               Cancel
             </button>
           </div>
