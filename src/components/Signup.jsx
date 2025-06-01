@@ -1,59 +1,58 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Signup() {
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    password: '',
+  });
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSignup = async (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     try {
-      console.log('Sending signup request:', { name, password });
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password }),
-      });
-      const data = await response.json();
-      console.log('Signup response:', { status: response.status, data });
-      if (response.ok) {
-        setSuccess('User created successfully! Redirecting to login...');
-        setName('');
-        setPassword('');
-        setTimeout(() => navigate('/login'), 1000);
-      } else {
-        setError(data.message || 'Failed to create user');
-        console.log('Signup error response:', data);
-      }
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${apiUrl}/api/auth/register`, formData);
+      console.log('Signup successful:', response.data);
+      setError(null);
+      navigate('/login');
     } catch (err) {
-      setError('An error occurred. Please try again.');
       console.error('Signup fetch error:', err);
+      setError(
+        err.response?.data?.message || 'Failed to sign up. Please try again.'
+      );
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-base-200">
-      <div className="card w-full max-w-md bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title text-2xl font-bold text-center">Create Admin Account</h2>
-          {error && <p className="text-error text-center">{error}</p>}
-          {success && <p className="text-success text-center">{success}</p>}
-          <form onSubmit={handleSignup} className="space-y-4">
+    <div className="hero min-h-screen bg-base-200">
+      <div className="hero-content flex-col">
+        <div className="text-center">
+          <h1 className="text-5xl font-bold">Sign Up</h1>
+        </div>
+        <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+          <form className="card-body" onSubmit={handleSubmit}>
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Name</span>
+                <span className="label-text">Username</span>
               </label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input input-bordered w-full"
-                placeholder="Enter your name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="username"
+                className="input input-bordered"
                 required
               />
             </div>
@@ -63,25 +62,29 @@ function Signup() {
               </label>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input input-bordered w-full"
-                placeholder="Enter your password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="password"
+                className="input input-bordered"
                 required
               />
             </div>
+            {error && <p className="text-error text-center">{error}</p>}
             <div className="form-control mt-6">
-              <button type="submit" className="btn btn-primary w-full">
+              <button type="submit" className="btn btn-primary">
                 Sign Up
               </button>
             </div>
+            <div className="text-center mt-4">
+              <p>
+                Already have an account?{' '}
+                <a href="/login" className="link link-primary">
+                  Login
+                </a>
+              </p>
+            </div>
           </form>
-          <p className="text-center mt-4">
-            Already have an account?{' '}
-            <Link to="/login" className="link link-primary">
-              Log in
-            </Link>
-          </p>
         </div>
       </div>
     </div>
