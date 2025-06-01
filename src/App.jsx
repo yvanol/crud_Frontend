@@ -36,10 +36,15 @@ function App() {
       } else {
         setIsAuthenticated(false);
       }
+      setIsOpen(false); // Ensure modal is closed after auth check
       setIsLoading(false);
     };
     verifyAuth();
   }, []);
+
+  useEffect(() => {
+    console.log('isOpen changed:', isOpen); // Debug modal state
+  }, [isOpen]);
 
   const fetchProducts = async () => {
     try {
@@ -60,6 +65,7 @@ function App() {
   };
 
   const handleOpen = (mode, product = null) => {
+    console.log('handleOpen called:', { mode, product }); // Debug
     setModalMode(mode);
     setProductData(product);
     setIsOpen(true);
@@ -105,6 +111,7 @@ function App() {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setTableData([]);
+    setIsOpen(false); // Close modal on logout
   };
 
   if (isLoading) {
