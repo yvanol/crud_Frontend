@@ -1,77 +1,84 @@
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ModalForm from "./ModalForm";
+import { useState } from 'react';
 
-const TableList = () => {
-  const [products, setProducts] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+export default function TableList({ handleOpen, searchTerm, tableData, setTableData }) {
+  const [error, setError] = useState(null);
 
-  // Fetch products on mount
-  useEffect(() => {
-    const fetchProducts = async () => {
+  const filteredData = tableData.filter((product) => {
+    return (
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this product?');
+    if (confirmDelete) {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
-          headers: { Authorization: `Bearer ${token}` },
+        await axios.delete(`${import.meta.env.VITE_API_URL}/api/products/${id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
-        setProducts(response.data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
+        setTableData((prevData) => prevData.filter((product) => product.id !== id));
+      } catch (err) {
+        setError(err.message);
+        console.error('Error deleting product:', err);
       }
-    };
-    fetchProducts();
-  }, []);
-
-  // Handle adding a product
-  const handleAddProduct = async (formData) => {
-    if (!formData) {
-      setShowModal(false); // Close modal on cancel
-      return;
-    }
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setShowModal(false);
-      // Refresh products
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Failed to add product');
     }
   };
 
   return (
-    <div>
-      <h2>Products</h2>
-      <button onClick={() => setShowModal(true)}>Add Product</button>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Active</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td>{product.name}</td>
-              <td>{product.description}</td>
-              <td>${product.price}</td>
-              <td>{product.isactive ? 'Yes' : 'No'}</td>
+    <>
+      {error && <p className="text-error text-center">{error}</p>}
+      <div className="overflow-x-auto mt-10 flex justify-center">
+        <table className="table w-full max-w-4xl">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th></th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {showModal && <ModalForm onSubmit={handleAddProduct} />}
-    </div>
+          </thead>
+          <tbody className="hover">
+            {filteredData.map((product) => (
+              <tr key={product.id}>
+                <th>{product.id}</th>
+                <td>{product.name}</td>
+                <td>{product.description}</td>
+                <td>{product.price}</td>
+                <td>
+                  <button
+                    className={`btn rounded-full w-20 ${
+                      product.isactive ? 'btn-primary' : 'btn-outline btn-primary'
+                    }`}
+                  >
+                    {product.isactive ? 'Available' : 'Sold'}
+                  </button>
+                </td>
+                <td>
+                  <button
+                    onClick={() => handleOpen('edit', product)}
+                    className="btn btn-secondary"
+                  >
+                    Update
+                  </button>
+                </td>
+                <td>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="btn btn-accent"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
-};
-
-export default TableList;
+}
