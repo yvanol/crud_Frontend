@@ -24,54 +24,70 @@ function App() {
     }
   }, []);
 
- const fetchProducts = async () => {
-  try {
-    console.log('Fetching products with token:', localStorage.getItem('token'));
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    });
-    setTableData(response.data);
-    setError(null);
-  } catch (err) {
-    console.error('Error fetching products:', {
-      message: err.message,
-      response: err.response ? err.response.data : null,
-      status: err.response ? err.response.status : null,
-    });
-    setError(err.response?.data?.error || err.response?.data?.message || 'Failed to fetch products');
-  }
-};
+  // Define handleOpen
+  const handleOpen = (mode, product = null) => {
+    setModalMode(mode); // Set mode to 'add' or 'edit'
+    setProductData(product); // Set product data for editing, or null for adding
+    setIsOpen(true); // Open the modal
+  };
 
-const handleSubmit = async (newProductData) => {
-  try {
-    if (modalMode === 'add') {
-      console.log('Sending product data:', newProductData);
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, newProductData, {
+  const fetchProducts = async () => {
+    try {
+      console.log('Fetching products with token:', localStorage.getItem('token'));
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      console.log('Product added:', response.data);
-      setTableData((prevData) => [...prevData, response.data]);
-    } else {
-      console.log('Updating product with ID:', productData.id);
-      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${productData.id}`, newProductData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      setTableData(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching products:', {
+        message: err.message,
+        response: err.response ? err.response.data : null,
+        status: err.response ? err.response.status : null,
       });
-      console.log('Product updated:', response.data);
-      setTableData((prevData) =>
-        prevData.map((product) => (product.id === productData.id ? response.data : product))
-      );
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to fetch products');
     }
-    setError(null);
-    setIsOpen(false);
-    setProductData(null);
-  } catch (error) {
-    console.error('Error in handleSubmit:', {
-      message: error.message,
-      response: error.response ? error.response.data : null,
-    });
-    setError(error.response?.data?.message || 'Failed to save product');
+  };
+
+  useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    setIsAuthenticated(true);
+    fetchProducts(); // Fetch products on mount if authenticated
   }
-};
+}, []);
+
+  const handleSubmit = async (newProductData) => {
+    try {
+      if (modalMode === 'add') {
+        console.log('Sending product data:', newProductData);
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, newProductData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        console.log('Product added:', response.data);
+        setTableData((prevData) => [...prevData, response.data]);
+      } else {
+        console.log('Updating product with ID:', productData.id);
+        const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${productData.id}`, newProductData, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        console.log('Product updated:', response.data);
+        setTableData((prevData) =>
+          prevData.map((product) => (product.id === productData.id ? response.data : product))
+        );
+      }
+      setError(null);
+      setIsOpen(false);
+      setProductData(null);
+    } catch (error) {
+      console.error('Error in handleSubmit:', {
+        message: error.message,
+        response: error.response ? error.response.data : null,
+      });
+      setError(error.response?.data?.message || 'Failed to save product');
+    }
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-base-200">
@@ -84,7 +100,7 @@ const handleSubmit = async (newProductData) => {
               isAuthenticated ? (
                 <>
                   <NavBar
-                    onOpen={() => handleOpen('add')}
+                    onOpen={() => handleOpen('add')} // Pass handleOpen with 'add' mode
                     onSearch={setSearchTerm}
                     setIsAuthenticated={setIsAuthenticated}
                   />
@@ -92,7 +108,7 @@ const handleSubmit = async (newProductData) => {
                   <TableList
                     setTableData={setTableData}
                     tableData={tableData}
-                    handleOpen={handleOpen}
+                    handleOpen={handleOpen} // Pass handleOpen to TableList
                     searchTerm={searchTerm}
                   />
                   <ModalForm

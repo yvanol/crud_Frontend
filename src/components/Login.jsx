@@ -8,30 +8,24 @@ function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      console.log('Sending login request:', { name, password });
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, password }),
-      });
-      const data = await response.json();
-      console.log('Login response:', { status: response.status, data });
-      if (response.ok) {
-        setIsAuthenticated(true);
-        localStorage.setItem('token', data.token);
-        navigate('/');
-      } else {
-        setError(data.message || 'Invalid name or password');
-        console.log('Login error response:', data);
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Login fetch error:', err);
+  e.preventDefault();
+  try {
+    console.log('Sending login request:', { name, password });
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+      name,
+      password,
+    });
+    console.log('Login response:', { status: response.status, data: response.data });
+    if (response.status === 200) {
+      setIsAuthenticated(true);
+      localStorage.setItem('token', response.data.token);
+      navigate('/');
     }
-  };
-
+  } catch (err) {
+    setError(err.response?.data?.message || 'Invalid name or password');
+    console.error('Login fetch error:', err);
+  }
+};
   const handleSignupNavigation = () => {
     navigate('/signup');
   };
