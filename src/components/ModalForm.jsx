@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 
-const ModalForm = ({ onSubmit }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    isactive: false,
-  });
+const ModalForm = ({ onSubmit, product }) => {
+  const [formData, setFormData] = useState(
+    product || {
+      name: '',
+      description: '',
+      price: '',
+      isactive: false,
+    }
+  );
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,51 +21,85 @@ const ModalForm = ({ onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (typeof onSubmit === 'function') {
-      onSubmit(formData); // Call onSubmit with form data
+      onSubmit(formData);
     } else {
       console.error('onSubmit is not a function:', onSubmit);
     }
   };
 
   return (
-    <div className="modal">
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Product Name"
-          required
-        />
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Description"
-          required
-        />
-        <input
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          placeholder="Price"
-          step="0.01"
-          required
-        />
-        <label>
-          <input
-            type="checkbox"
-            name="isactive"
-            checked={formData.isactive}
-            onChange={handleChange}
-          />
-          Active
-        </label>
-        <button type="submit">Add Product</button>
-        <button type="button" onClick={() => onSubmit(null)}>Cancel</button>
-      </form>
+    <div className="modal modal-open">
+      <div className="modal-box">
+        <h3 className="font-bold text-lg">{product ? 'Edit Product' : 'Add Product'}</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Product Name</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Product Name"
+              className="input input-bordered w-full"
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Description</span>
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Description"
+              className="textarea textarea-bordered w-full"
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Price</span>
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="Price"
+              step="0.01"
+              className="input input-bordered w-full"
+              required
+            />
+          </div>
+          <div className="form-control">
+            <label className="label cursor-pointer">
+              <span className="label-text">Active</span>
+              <input
+                type="checkbox"
+                name="isactive"
+                checked={formData.isactive}
+                onChange={handleChange}
+                className="checkbox"
+              />
+            </label>
+          </div>
+          <div className="modal-action">
+            <button type="submit" className="btn btn-primary">
+              {product ? 'Update' : 'Add'} Product
+            </button>
+            <button
+              type="button"
+              onClick={() => onSubmit(null)}
+              className="btn btn-outline"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
