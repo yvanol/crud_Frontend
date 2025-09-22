@@ -11,12 +11,12 @@ function Login({ setIsAuthenticated }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      console.log('Sending login request:', { name });
+      // console.log('Sending login request:', { name });
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         name,
         password,
       });
-      console.log('Login response:', { status: response.status, data: response.data });
+      // console.log('Login response:', { status: response.status, data: response.data });
       if (response.status === 200) {
         setIsAuthenticated(true);
         localStorage.setItem('token', response.data.token);
