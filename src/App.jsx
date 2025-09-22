@@ -58,7 +58,7 @@ function App() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      // console.log('Fetching products with token:', token);
+      console.log('Fetching products with token:', token);
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
