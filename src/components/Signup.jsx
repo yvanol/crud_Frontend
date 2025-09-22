@@ -23,11 +23,11 @@ function Signup() {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await axios.post(`${apiUrl}/api/auth/register`, formData);
-      console.log('Signup successful:', response.data);
+      // console.log('Signup successful:', response.data);
       setError(null);
       navigate('/login');
     } catch (err) {
-      console.error('Signup fetch error:', err);
+      // console.error('Signup fetch error:', err);
       setError(
         err.response?.data?.message || 'Failed to sign up. Please try again.'
       );
